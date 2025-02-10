@@ -318,16 +318,47 @@ int main(int argc, char* argv[]) {
       }
 
     }
+    input.close();
+    input.open("BetaDets.bin", std::ios::binary);
+    // copies all data into buffer
+    buffer.assign(std::istreambuf_iterator<char>(input), {});
+    int nBetaDets = static_cast<int>(buffer.size()/5);
+    cout << nBetaDets <<endl;
+    int nbeta = nelec/2; 
+    vector<vector<int>> occBeta(nBetaDets, vector<int>(nbeta,-1));
+    
+    for (int i=0; i<nBetaDets; i++) {
 
-    // Make HF determinant
-    Dets.resize(nAlphaDets*nAlphaDets);
+      int occindex = 0;
+      for (int c=0; c<5; c++) {
+        unsigned char a = buffer[5*i+(4-c)];
+        //cout << ((int)(a))<<endl;
+        for (int b=0; b<8; b++) {
+          //cout << ((a>>b & 1) != 0)<<" ";
+          if ((a>>b & 1) != 0) {
+            occBeta[i][occindex] = c*8+b;
+            occindex++;
+          }
+        }
+        //cout << endl;
+      }
+
+      if (occindex != nbeta) {
+        cout << "not enough 1 bits "<<nbeta<<"  "<<occindex<<endl;
+        exit(0);
+      }
+
+    }
+
+    // Make HF determinant 
+    Dets.resize(nAlphaDets);
     for (int i=0; i<nAlphaDets; i++) {
-      for (int j=0; j<nAlphaDets; j++) {
-        Determinant& d = Dets[i*nAlphaDets+j];
+    //  for (int j=0; j<nAlphaDets; j++) {
+        Determinant& d = Dets[i];
         for (int a=0; a<nalpha; a++) 
           d.setocc(occAlpha[i][a]*2, true);
-        for (int a=0; a<nalpha; a++) 
-          d.setocc(occAlpha[j][a]*2+1, true);
+        for (int a=0; a<nbeta; a++) 
+          d.setocc(occBeta[i][a]*2+1, true);
 
 
         double E = d.Energy(I1, I2, coreE);
@@ -335,9 +366,8 @@ int main(int argc, char* argv[]) {
         //     << format("%18.10f") % (E) << endl;
         if (E < lowestEnergy) {
           lowestEnergy = E;
-          lowestEnergyDet = i*nAlphaDets+j;
+          lowestEnergyDet = i;
         }
-      }
     }
 
   }
@@ -376,7 +406,7 @@ int main(int argc, char* argv[]) {
 
   HFoccupied.resize(1);
   
-  // Have the dets, ci coefficient and diagnoal on all processors
+  // Have the dets, ci coefficient and diagonal on all processors
   vector<MatrixXx> ci(schd.nroots, MatrixXx::Zero(Dets.size(), 1));
   vector<MatrixXx> vdVector(schd.nroots);  // these vectors are used to
                                            // calculate the response equations
