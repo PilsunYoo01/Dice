@@ -292,7 +292,7 @@ int main(int argc, char* argv[]) {
     // copies all data into buffer
     std::vector<unsigned char> buffer(std::istreambuf_iterator<char>(input), {});
     int nAlphaDets = static_cast<int>(buffer.size()/5);
-    cout << nAlphaDets <<endl;
+    //cout << nAlphaDets <<endl;
     int nalpha = nelec/2; 
     vector<vector<int>> occAlpha(nAlphaDets, vector<int>(nalpha,-1)); 
 
@@ -323,7 +323,7 @@ int main(int argc, char* argv[]) {
     // copies all data into buffer
     buffer.assign(std::istreambuf_iterator<char>(input), {});
     int nBetaDets = static_cast<int>(buffer.size()/5);
-    cout << nBetaDets <<endl;
+    //cout << nBetaDets <<endl;
     int nbeta = nelec/2; 
     vector<vector<int>> occBeta(nBetaDets, vector<int>(nbeta,-1));
     
@@ -362,8 +362,10 @@ int main(int argc, char* argv[]) {
 
 
         double E = d.Energy(I1, I2, coreE);
-        //pout << d << " Given Ref. Energy:    "
-        //     << format("%18.10f") % (E) << endl;
+		if (i==0){
+			pout << " " << d << " Given Ref. Energy:    "
+				 << format("%18.10f") % (E) << endl;
+		}
         if (E < lowestEnergy) {
           lowestEnergy = E;
           lowestEnergyDet = i;
